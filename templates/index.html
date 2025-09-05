@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Visualizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="input-section">
+            <h1>LLM Visualizer</h1>
+            <div class="input-container">
+                <textarea id="input-text" placeholder="Enter your text here..."></textarea>
+            </div>
+            <div class="input-buttons">
+                                    <button id="generate-sample-btn" class="secondary-btn">✨ Generate</button>
+                <button id="process-btn" class="primary-btn">Process</button>
+            </div>
+        </div>
+
+        <div class="technical-info-panel">
+            <h2>Technical Information</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>Model Details</h3>
+                    <div id="model-details"></div>
+                </div>
+                <div class="info-card">
+                    <h3>Input Analysis</h3>
+                    <div id="input-details"></div>
+                </div>
+                <div class="info-card">
+                    <h3>Embedding Details</h3>
+                    <div id="embedding-details"></div>
+                </div>
+                <div class="info-card">
+                    <h3>Attention Details</h3>
+                    <div id="attention-details"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="token-section">
+            <h2>Tokenization</h2>
+            <div class="token-list-container">
+                <ul id="token-list"></ul>
+            </div>
+        </div>
+        <div class="tokenization-process-panel">
+            <h2>Tokenization and Embedding Process</h2>
+            <div class="process-steps">
+                <div class="step-controls">
+                    <button id="prev-step" disabled>Previous</button>
+                    <button id="next-step">Next</button>
+                </div>
+                <div class="step-indicator">
+                    Step <span id="current-step">1</span> of <span id="total-steps">4</span>
+                </div>
+            </div>
+            <div class="process-visualization">
+                <div class="step-content" id="step-1">
+                    <h3>Step 1: Input Text</h3>
+                    <div class="text-breakdown"></div>
+                </div>
+                <div class="step-content" id="step-2" style="display: none;">
+                    <h3>Step 2: Tokenization</h3>
+                    <div class="token-breakdown"></div>
+                </div>
+                <div class="step-content" id="step-3" style="display: none;">
+                    <h3>Step 3: Token IDs</h3>
+                    <div class="token-ids-breakdown"></div>
+                </div>
+                <div class="step-content" id="step-4" style="display: none;">
+                    <h3>Step 4: Vector Embeddings</h3>
+                    <div class="embedding-breakdown"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="visualization-section">
+            <div class="viz-row">
+                <div class="viz-container main-viz">
+                    <h2>3D Embedding Visualization</h2>
+                    <div class="viz-controls">
+                        <div class="color-scale-selector"></div>
+                        <div class="text-labels-control" style="margin-top: 10px;">
+                            <label>
+                                <input type="checkbox" id="show-text-labels" checked>
+                                Show Token Labels
+                            </label>
+                        </div>
+                        <div class="download-controls" style="margin-top: 10px;">
+                            <button id="download-embeddings" class="download-btn">Download Embeddings (CSV)</button>
+                            <button id="download-embeddings-json" class="download-btn">Download Embeddings (JSON)</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Combined plot and analysis container -->
+                    <div class="plot-analysis-container">
+                        <div class="plot-section">
+                            <div class="plot-header">
+                                <button class="fullscreen-btn" onclick="openFullscreen('embedding-plot')" title="Open in fullscreen">⛶</button>
+                            </div>
+                            <div id="embedding-plot">
+                                <div style="text-align: center; padding: 50px; color: #666;">
+                                    <p>3D visualization will appear here after processing text</p>
+                                    <p style="font-size: 0.9em;">Enter text above and click "Process" to see the 3D embedding visualization</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Smart Clustering Analysis inside the same widget -->
+                        <div class="analysis-section" id="clustering-analysis-panel" style="display: none;">
+                            <h3>🧠 Smart Clustering Analysis</h3>
+                                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button id="analyze-clustering-btn" class="analysis-btn">Analyze Clusters</button>
+                </div>
+                            <div id="clustering-analysis-content" class="analysis-content scrollable">
+                                <p>Click "Analyze Clusters" to get AI-powered insights about semantic groupings in the 3D space.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+
+
+            
+            
+        
+            <div class="viz-row">
+                <div class="viz-container attention-container main-viz">
+                    <h2>Attention Visualization</h2>
+                    <div class="attention-controls" style="margin-bottom: 15px;">
+                        <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                            <div>
+                                <label for="attention-layer">Attention Layer: </label>
+                                <select id="attention-layer">
+                                    <option value="last">Last Layer (Recommended)</option>
+                                    <option value="first">First Layer</option>
+                                    <option value="middle">Middle Layer</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>
+                                    <input type="checkbox" id="show-attention-values" checked>
+                                    Show Attention Values
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Side-by-side layout: attention plot on left, analysis on right -->
+                    <div class="plot-analysis-container">
+                        <div class="plot-section">
+                            <div class="plot-header">
+                                <button class="fullscreen-btn" onclick="openFullscreen('attention-heatmap')" title="Open in fullscreen">⛶</button>
+                            </div>
+                            <div id="attention-heatmap"></div>
+                        </div>
+                        
+                        <!-- Attention Pattern Recognition inside attention widget -->
+                        <div class="analysis-section" id="attention-analysis-panel" style="display: none;">
+                            <h3>🔍 Attention Pattern Recognition</h3>
+                            <button id="analyze-attention-btn" class="analysis-btn">Analyze Patterns</button>
+                            <div id="attention-analysis-content" class="analysis-content scrollable">
+                                <p>Click "Analyze Patterns" to get AI-powered insights about attention relationships and linguistic patterns.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            
+    </div>
+
+    <script src="{{ url_for('static', filename='js/visualization.js') }}"></script>
+    
+
+    <!-- Fullscreen Modal -->
+    <div id="fullscreen-modal" class="fullscreen-modal" style="display: none;">
+        <div class="fullscreen-content">
+            <div class="fullscreen-header">
+                <h3 id="fullscreen-title">Plot</h3>
+                <button class="close-fullscreen-btn" onclick="closeFullscreen()" title="Close fullscreen">✕</button>
+            </div>
+            <div id="fullscreen-plot-container" class="fullscreen-plot-container"></div>
+        </div>
+    </div>
+</body>
+</html>
