@@ -28,8 +28,8 @@ A web-based tool for visualizing how BERT processes text with AI-powered analysi
 
 ### 1. Clone and Install
 ```bash
-git clone https://github.com/Shwethaamrutha/TSAI-S2.git
-cd TSAI-S2
+git clone https://github.com/Shwethaamrutha/TSAI-S3-LLMVisualizer.git
+cd TSAI-S3-LLMVisualizer
 
 # Install uv (recommended)
 curl -LsSf https://astral.sh/uv/install.sh | sh
